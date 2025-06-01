@@ -30,7 +30,19 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.data == "claim_profit":
         await claim_handler(update, context)
     elif query.data == "make_deposit":
-        await deposit_handler(update, context)
+        # Instead of calling deposit_handler directly (which expects a message),
+        # just send the same deposit message from here:
+        address = "TLXrJrvBkZSJGsTFKrm29jq9wy1mgA7PmV"
+        text = (
+            f"🪙 *USDT Deposit Instructions*\n\n"
+            f"Please send *USDT (TRC20)* to the following address:\n\n"
+            f"`{address}`\n\n"
+            f"✅ Minimum deposit: 50 USDT\n"
+            f"✅ Maximum deposit: 50,000 USDT\n\n"
+            f"⚠️ If you plan to deposit more than 50,000 USDT, please contact us first through our website.\n\n"
+            f"_You will earn daily profit based on your deposit tier._"
+        )
+        await query.message.reply_markdown(text)
     elif query.data == "referral_rewards":
         await query.edit_message_text("🎁 Referral system is coming soon! Stay tuned.")
     elif query.data == "profit_info":
