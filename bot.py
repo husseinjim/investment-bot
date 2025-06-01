@@ -4,6 +4,7 @@ import os
 
 from handlers.deposit import deposit_handler
 from handlers.claim import claim_handler
+from handlers.submit import submit_handler  # ✅ NEW: import the TX submit handler
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]  # Railway injects this automatically
 
@@ -30,8 +31,6 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.data == "claim_profit":
         await claim_handler(update, context)
     elif query.data == "make_deposit":
-        # Instead of calling deposit_handler directly (which expects a message),
-        # just send the same deposit message from here:
         address = "TLXrJrvBkZSJGsTFKrm29jq9wy1mgA7PmV"
         text = (
             f"🪙 *USDT Deposit Instructions*\n\n"
@@ -40,7 +39,7 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"✅ Minimum deposit: 50 USDT\n"
             f"✅ Maximum deposit: 50,000 USDT\n\n"
             f"⚠️ If you plan to deposit more than 50,000 USDT, please contact us first through our website.\n\n"
-            f"_You will earn daily profit based on your deposit tier._"
+            f"_After sending, please submit your transaction hash using /submit command to activate your balance._"
         )
         await query.message.reply_markdown(text)
     elif query.data == "referral_rewards":
@@ -62,6 +61,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("deposit", deposit_handler))
     app.add_handler(CommandHandler("claim", claim_handler))
+    app.add_handler(CommandHandler("submit", submit_handler))  # ✅ NEW: register submit
     app.add_handler(CallbackQueryHandler(callback_handler))
 
     print("Bot is running...")
