@@ -4,7 +4,8 @@ import os
 
 from handlers.deposit import deposit_handler
 from handlers.claim import claim_handler
-from handlers.submit import submit_handler  # ✅ NEW: import the TX submit handler
+from handlers.submit import submit_handler
+from handlers.setbalance import set_balance_handler  # ✅ NEW: admin command
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]  # Railway injects this automatically
 
@@ -61,7 +62,8 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("deposit", deposit_handler))
     app.add_handler(CommandHandler("claim", claim_handler))
-    app.add_handler(CommandHandler("submit", submit_handler))  # ✅ NEW: register submit
+    app.add_handler(CommandHandler("submit", submit_handler))
+    app.add_handler(CommandHandler("setbalance", set_balance_handler))  # ✅ NEW
     app.add_handler(CallbackQueryHandler(callback_handler))
 
     print("Bot is running...")
