@@ -1,59 +1,39 @@
 from telegram import Update
 from telegram.ext import ContextTypes
-from datetime import datetime
+from handlers.setbalance import user_balances  # ✅ Import shared balances
 
-# ✅ Simulated user balances (replace with DB later)
-mock_balances = {
-    123456789: 2500  # test user
-}
-
-# ✅ Claim timestamps per user
-last_claims = {}
-
-# 🎯 Tier logic
-def get_daily_percent(balance):
-    if balance >= 10000:
-        return 0.13
-    elif balance >= 5000:
-        return 0.10
-    elif balance >= 1000:
-        return 0.08
-    else:
-        return 0.05
-
-# 🧠 Claim handler
 async def claim_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    now = datetime.utcnow()
 
-    # Get user's balance
-    balance = mock_balances.get(user_id)
-    if balance is None:
-        await update.effective_message.reply_text(
-            "❌ You have no deposit yet.\nSend USDT (TRC20) first to activate your balance."
+    # Check if user has a balance
+    if user_id not in user_balances:
+        await update.message.reply_text(
+            "⚠️ No active balance found.\nPlease deposit and submit your TX hash using /submit first."
         )
         return
 
-    # Check if already claimed today
-    last_claim = last_claims.get(user_id)
-    if last_claim and now.date() == last_claim.date():
-        await update.effective_message.reply_text(
-            "⏳ You already claimed your daily profit today.\nCome back tomorrow!"
-        )
+    balance = user_balances[user_id]
+
+    # Calculate profit based on tiers
+    if 50 <= balance < 1000:
+        rate = 0.05
+    elif 1000 <= balance < 5000:
+        rate = 0.08
+    elif 5000 <= balance < 10000:
+        rate = 0.10
+    elif balance >= 10000:
+        rate = 0.13
+    else:
+        await update.message.reply_text("⚠️ Your balance is below the minimum threshold.")
         return
 
-    # Calculate profit
-    rate = get_daily_percent(balance)
-    profit = round(balance * rate, 2)
+    profit = balance * rate
 
-    # Record the claim
-    last_claims[user_id] = now
-
-    # Send result
-    await update.effective_message.reply_markdown(
-        f"💸 *Daily Profit Claimed!*\n\n"
-        f"💼 Balance: *{balance} USDT*\n"
-        f"📈 Rate: *{int(rate * 100)}%*\n"
-        f"✅ Profit Earned: *{profit} USDT*\n\n"
-        f"Come back tomorrow for your next reward!"
+    await update.message.reply_text(
+        f"💸 *Profit Claimed!*\n\n"
+        f"Your current balance: *{balance} USDT*\n"
+        f"Daily rate: *{int(rate * 100)}%*\n"
+        f"Today's profit: *{round(profit, 2)} USDT*\n\n"
+        f"_Come back in 24h to claim again._",
+        parse_mode="Markdown"
     )
